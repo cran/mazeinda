@@ -1,0 +1,409 @@
+---
+title: "Introduction to Mazeinda"
+author: "Alice Dolma Albasi, Martin Wells"
+date: "`r Sys.Date()`"
+output: pdf_document
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo=FALSE}
+numero=10000
+```
+
+## Introduction 
+
+Mazeinda provides functions for detecting and testing the significance of pairwise Monotonic Association for Zero-Inflated non-negative Data with the measure proposed by Pimentel(2009)[1]. This package can handle any degree of zero inflation as well as non-zero ties. The unique requirement is the independence of the entries of the vectors to be correlated. Pairwise association and testing of a large number of vectors can be expedited with parallel computations thanks to the packages "foreach" and "doMC". 
+
+## A development of $\tau^*$
+
+In the setting of zero inflated data Pimentel(2009) suggested that $\tau^*$ can be re-expressed as
+\begin{equation}
+\tau^*=p_{11}^2 \tau_{11} + 2(p_{00}p_{11} - p_{01}p_{10})
+\end{equation}
+where
+\begin{itemize}
+\item $p_{00}$ is the probability that for any given pair of corresponding entries of $X$ and $Y$ both entries are 0; 
+\item $p_{11}$ is the probability that for any given pair of corresponding entries of $X$ and $Y$ both entries are positive;
+\item $p_{10}$ is the probability that for any given pair of corresponding entries of $X$ and $Y$ the entry of the vector $X$ is positive while the entry of the vector $Y$ is zero;
+\item $p_{01}$ is the probability that for any given pair of corresponding entries of $X$ and $Y$ the entry of the vector $X$ is zero while the entry of the vector $Y$ is positive; and
+\item $\tau_{11}$ is the value of Kendall $\tau_b$ computed on the strictly positive entries of the vectors $X$ and $Y$. 
+\end{itemize}
+
+<br> Recall that two pairs of jointly distributed non-negative continuous random variables $(X_i, Y_i)$ and $(X_j, Y_j)$ are said to be concordant if $(X_i- X_j) (Y_i-Y_j)>0$ and discordant if $(X_i- X_j) (Y_i-Y_j)<0$.   There are 16 possible different realizations of two pairs of the realization of the random variables $(x_i, y_i)$ and $(x_j, y_j)$ displayed in Table \ref{all_possible} below.  
+
+\noindent To calculate the probability of concordance we apply the law of total probability using the two left most columns of Table \ref{all_possible}, it follows that
+\begin{eqnarray}\label{P_C1}
+P(C)&=&\sum_{\rm all \; pairs} P[C|\; X_i, Y_i,X_j, Y_j] \; P[ X_i, Y_i,X_j, Y_j] \\
+&=&
+2p_{00}p_{11} + p_{01}p_{11} P(Y_i<Y_j)+p_{10}p_{11}   P(X_i<X_j) \nonumber \\
+&& \quad \quad +  p_{01}p_{11}  P(Y_i>Y_j) + p_{10}p_{11}P(X_i>X_j)  \nonumber  \\
+&& \quad \quad  + p_{11}^2   P[(X_i-X_j)(Y_i-Y_j)>0]. \nonumber
+\end{eqnarray} 
+Since for positive values of the continuous random variables $X$ and $Y$ we have $P(X_i<X_j)= 1- P(X_i>X_j)$ and $P(Y_i<Y_j)= 1- P(Y_i>Y_j)$, \eqref{P_C1} reduces to
+\begin{equation} \label{P_C2}
+P(C)= 2p_{00}p_{11}+ p_{01}p_{11} +p_{10}p_{11}+ p_{11}^2P[(X_i-X_j)(Y_i-Y_j)>0].
+\end{equation}
+
+The same logic can be applied for the calculation the probability of discordance using the first and third columns of Table \ref{all_possible} to show that
+
+\begin{equation}
+\label{P_D2}
+P(D)=  2p_{01}p_{10}+ p_{01}p_{11} +p_{10}p_{11} + p_{11}^2 P[(X_i-X_j)(Y_i-Y_j)<0].
+\end{equation}
+
+Finally, Kendall's tau formula is the difference of \eqref{P_C2} and \eqref{P_D2} so that 
+\begin{equation*} 
+\tau^{*}= 2p_{00}p_{11}- 2p_{01}p_{10}+p_{11}^2 \tau_{11}.
+\end{equation*}
+
+\begin{table}
+\caption{All Possible Realization and Conditional Probabilities of Concordance and Discordance
+}
+\begin{center}\label{all_possible}
+\begin{tabular}{ |p{4cm}||p{4.5cm}|p{4.5cm}| } 
+  \hline
+ $P[X_i, Y_i,X_j, Y_j]$ & $P[C|\; X_i, Y_i,X_j, Y_j]$ & $P[D|\; X_i, Y_i,X_j, Y_j]$\\
+ \hline
+ $P[0,0,0,0]=p_{00}^2$  & 0    &0\\
+  \hline
+ $P[1,0,0,0] =p_{00}p_{10}$  & 0    &0\\
+ $P[0,1,0,0]  =p_{00}p_{01}$ & 0    &0\\
+ $P[0,0,1,0]=p_{00}p_{10}$   & 0    &0\\
+$P[0,0,0,1]  =p_{00}p_{01}$ & 0    &0\\
+   \hline
+$P[1,1,0,0] =p_{00}p_{11}$  & 1    &0\\
+  $P[0,1,1,0] =p_{01}p_{10}$ & 0    &1\\
+  $P[0,0,1,1] =p_{00}p_{11}$  & 1    &0\\
+  $P[1,0,0,1]=p_{01}p_{10}$   & 0    &1\\
+ \hline
+  $P[1,0,1,0]=p_{10}^2$   & 0    &0\\
+  $P[0,1,0,1]=p_{01}^2$   & 0    &0\\
+   \hline
+  $P[0,1,1,1]=p_{01}p_{11}$   & $P(Y_i<Y_j)$    &$P(Y_i>Y_j)$\\
+  $P[1,0,1,1]=p_{10}p_{11}$  & $P(X_i<X_j)$    &$P(X_i>X_j)$\\
+  $P[1,1,0,1]=p_{01}p_{11}$   & $P(Y_i>Y_j)$    &$P(Y_i<Y_j)$\\
+   $P[1,1,1,0]=p_{10}p_{11}$   & $P(X_i>X_j)$    &$P(X_i<X_j)$\\
+  \hline
+ $P[1,1,1,1]=p_{11}^2$   & $P[(X_i-X_j)(Y_i-Y_j)>0]$    &$P[(X_i-X_j)(Y_i-Y_j)<0]$\\
+  \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+##Simulations
+The choice of the measure proposed in Pimentel(2009)[1] over the one by Pimentel, Niewiadomska-Bugajb and Wang(2015) [3] is motivated by the proof above and by the following simulations which suggest that the method considered in this package has superior performance in terms of bias and power. 
+
+
+Let:
+
+* $\tau_b$ be Kendall's $\tau_b$
+* $\tau_t$= $p_{11}^2 t_{11} + 2(p_{00}p_{11} - p_{01}p_{10})$
+* $\tau_p$= $p_{11}^2 t_{11} + 2(p_{00}p_{11} - p_{01}p_{10})+ 2p_{11}[p_{10}(1-2p_1) + p_{01}(1-2p_2)]$
+* d= $\tau_t- \tau_p$= $2p_{11}[p_{10}(1-2p_1) + p_{01}(1-2p_2)]$
+
+\bigskip The zero-inflated data is derived from a beta zero-inflated distribution with parameters $(0.5,1)$ and probability mass at 0 of 0.3, 0.5 and 0.8.
+The first figure below shows the histograms of $\tau_b-\tau_p$ and the following the histogram of $\tau_b-\tau_t$ obtained with 10.000 vectors with 30 entries. 
+
+```{r,echo=FALSE}
+### DEFINITIONS OF FORMULAS
+
+prop_11<-function(x,y){
+  return((length(which(apply(cbind(x, y), 1, function(row) all(row[1] > 0 & row[2] > 0)))))/length(x))
+}
+
+prop_01<-function(x,y){
+  return((length(which(apply(cbind(x, y), 1, function(row) all(row[1] == 0 & row[2] > 0)))))/length(x))
+}
+
+
+prop_10<-function(x,y){
+  return((length(which(apply(cbind(x, y), 1, function(row) all(row[1] > 0 & row[2] == 0)))))/length(x))
+}
+
+tau_T <- function(x, y, estimator = "values", p11 = 0, p01 = 0, p10 = 0) {
+
+  nz <- which(apply(cbind(x, y), 1, function(row) all(row[1] > 0 & row[2] > 0)))
+  nz_data <- cbind(x, y)[nz, ]
+
+  if (length(nz) > 1) {
+    if (length(which(!duplicated(nz_data[, 1]))) == 1 | length(which(!duplicated(nz_data[, 2]))) == 1) {
+      t_11 <- 0  #positive ties treated as in Kendall's tau-b; i.e. they bring no contribution
+    } else {
+      t_11 <- cor(nz_data[, 1], nz_data[, 2], method = "kendall")
+    }
+  } else {
+    t_11 <- 0  #in case of only one positive entry, it is impossible to measure concordance or discordance
+  }
+
+  if (estimator == "values") {
+    p11 <-prop_11(x,y)
+    p01 <-prop_01(x,y)
+    p10 <-prop_10(x,y)
+  }
+
+  p_00 <- 1 - (p11 + p01 + p10)
+  if (p11 == 1 | p11 == 0 | p01 == 1 | p01 == 0 | p10 == 1 | p10 == 0 | p_00 == 1 | p_00 == 0){
+    ### cases when variance formula cannot be applied
+    return(cor(x, y, method = "kendall"))
+    }
+  return(p11^2 * t_11 + 2 * (p_00 * p11 - p01 * p10))
+}
+
+tau_P<-function(x,y){
+  data=cbind(x,y)
+  nz=which(apply(data,1,function(row) all(row[1]>0 & row[2]>0)))
+  p11=length(nz)/dim(data)[1]
+  nz_data=data[nz,]
+  
+  Y0= which(apply(data,1,function(row) all(row[2]==0)))
+  Y1= which(apply(data,1,function(row) all(row[2]>0)))
+  X0= which(apply(data,1,function(row) all(row[1]==0)))
+  X1= which(apply(data,1,function(row) all(row[1]>0)))
+  
+  if (length(Y0)>0 & length(Y1)>0){
+    count_1=0
+    for (i in data[Y0,1]){
+      count_1= count_1 + sum (sapply(data[Y1,1], function(x) X =if({x-i}<0){return (1)} else{return (0)}))
+    }
+  p_1= count_1 /(length(Y0)*length(Y1))
+  }
+  else{
+    p_1=0
+  }
+  
+  if (length(X0) & length(X1)>0){
+  count_2=0
+  for (i in data[X0,2]){
+   count_2=count_2+sum(sapply(data[X0,2], function(x) if({x-i}<0){return (1)} else{return (0)}))
+  }
+  p_2= count_2/(length(X0)*length(X1))
+  }
+  else{
+    p_2=0
+  }
+    
+  p01= (length(which(apply(data,1,function(row) all(row[1]==0 & row[2]>0)))))/dim(data)[1]
+  p10= (length(which(apply(data,1,function(row) all(row[2]==0 & row[1]>0)))))/dim(data)[1]
+  p_00= (length(which(apply(data,1,function(row) all(row==0)))))/dim(data)[1]
+  
+  if (length(nz)>1){
+    if (sd(nz_data[,1])==0 | sd(nz_data[,2])==0) {t_11=0}
+    else {t_11= cor(nz_data[,1],nz_data[,2],method="kendall")}
+    }
+  else {t_11=0}
+  
+  return (p11^2*t_11+2*(p_00*p11-p01*p10)+ 2*p11*(p10*((2*p_1)-1)+ p01*((2*p_2)-1)))
+}
+
+addendum<-function(x,y){ ##difference between two formulas
+  data=cbind(x,y)
+  nz=which(apply(data,1,function(row) all(row[1]>0 & row[2]>0)))
+  p11=length(nz)/dim(data)[1]
+  nz_data=data[nz,]
+  
+  Y0= which(apply(data,1,function(row) all(row[2]==0)))
+  Y1= which(apply(data,1,function(row) all(row[2]>0)))
+  X0= which(apply(data,1,function(row) all(row[1]==0)))
+  X1= which(apply(data,1,function(row) all(row[1]>0)))
+  
+  if (length(Y0)>0 & length(Y1)>0){
+    count_1=0
+    for (i in data[Y0,1]){
+      count_1= count_1 + sum (sapply(data[Y1,1], function(x) X =if({x-i}<0){return (1)} else{return (0)}))
+    }
+  p_1= count_1 /(length(Y0)*length(Y1))
+  }
+  else{
+    p_1=0
+  }
+  
+  if (length(X0) & length(X1)>0){
+  count_2=0
+  for (i in data[X0,2]){
+   count_2=count_2+sum(sapply(data[X0,2], function(x) if({x-i}<0){return (1)} else{return (0)}))
+  }
+  p_2= count_2/(length(X0)*length(X1))
+  }
+  else{
+    p_2=0
+  }
+    
+  p01= (length(which(apply(data,1,function(row) all(row[1]==0 & row[2]>0)))))/dim(data)[1]
+  p10= (length(which(apply(data,1,function(row) all(row[2]==0 & row[1]>0)))))/dim(data)[1]
+  p_00= (length(which(apply(data,1,function(row) all(row==0)))))/dim(data)[1]
+  
+  return (2*p11*(p10*((2*p_1)-1)+ p01*((2*p_2)-1)))
+}
+
+```
+
+```{r,echo=FALSE,message=FALSE}
+# repeat loop in R or repeat function in r
+compare_P<-function(infl, goal){
+  v=c()
+  sum= 0
+  while (sum<=goal){
+    library("gamlss.dist")
+    x=abs(rBEZI(30, mu = 0.9, sigma = 1, nu = infl))
+    y=abs(rBEZI(30, mu = 0.9, sigma = 1, nu = infl))
+    if (sd(x)!= 0 & sd(y)!= 0){ ### cannot test constant vectors, because Kendall's formula does not apply
+      sum = sum+1
+      C=cor(x,y,method='kendall')
+      v=c(v,(C-tau_P(x,y)))
+    }
+    }
+  return(v)
+}
+
+compare_T<-function(infl, goal){
+  v=c()
+  sum= 0
+  while (sum<goal){
+    library("gamlss.dist")
+    x=abs(rBEZI(30, mu = 0.9, sigma = 1, nu = infl))
+    y=abs(rBEZI(30, mu = 0.9, sigma = 1, nu = infl))
+    if (sd(x)!= 0 & sd(y)!= 0){ ### cannot test constant vectors, because Kendall's formula does not apply
+      sum = sum+1
+        C=cor(x,y,method='kendall')
+        v=c(v,(C-tau_T(x,y)))
+    }
+    }
+  return(v)
+}
+
+compare_d<-function(infl, goal){
+  v=c()
+  sum= 0
+  while (sum<goal){ ### cannot test constant vectors, because Kendall's formula does not apply
+    library("gamlss.dist")
+    x=abs(rBEZI(30, mu = 0.9, sigma = 1, nu = infl))
+    y=abs(rBEZI(30, mu = 0.9, sigma = 1, nu = infl))
+    if (sd(x)!= 0 & sd(y)!= 0){
+      sum = sum+1
+      v=c(v,addendum(x,y))
+    }
+    }
+  return(v)
+  }
+
+### histograms of difference of Kendall's Tau and proposed alternative formula
+
+par(mfrow = c(1, 3))
+hist(compare_P(0.3, numero),main=paste("tau_b-tau_P, infl=", 0.3),pin=c(1,1))
+hist(compare_P(0.5, numero),main=paste("tau_b-tau_P, infl=", 0.5),pin=c(1,1))
+hist(compare_P(0.8, numero),main=paste("tau_b-tau_P, infl=", 0.8),pin=c(1,1))
+```
+
+```{r,echo=FALSE,message=FALSE}
+par(mfrow = c(1, 3))
+hist(compare_T(0.3, numero),main=paste("tau_b-tau_T, infl=", 0.3),pin=c(1,1))
+hist(compare_T(0.5, numero),main=paste("tau_b-tau_T, infl=", 0.5),pin=c(1,1))
+hist(compare_T(0.8, numero),main=paste("tau_b-tau_T, infl=", 0.8),pin=c(1,1))
+
+```
+
+\noindent While in the histograms for 0.8 inflation $\tau_t$ and $\tau_p$ seem to  behave similarly and the mode in the histogram for 0.8 of the difference $d$ is close to zero, the histograms for 0.3 and 0.5 inflation suggest that $\tau_t$ is a better estimator for Kendall's $\tau_b$ as the mode is centered at 0.
+
+\bigskip 
+
+```{r,echo=FALSE}
+### histograms of difference of two formulas
+par(mfrow = c(1, 3))
+
+hist(compare_d(0.3, numero),main=paste("tau_P-tau_T, infl=", 0.3),pin=c(5,5))
+hist(compare_d(0.5, numero),main=paste("tau_P-tau_T, infl=", 0.5),pin=c(5,5))
+hist(compare_d(0.8, numero),main=paste("tau_P-tau_T, infl=", 0.8),pin=c(5,5))
+```
+
+\bigskip The means of the values plotted in the histograms above confirm these results: 
+
+\bigskip 
+
+```{r, echo=FALSE, results='asis'}
+m=matrix(c(mean(compare_P(0.3, numero)),mean(compare_P(0.5, numero)),
+           mean(compare_P(0.8, numero)),mean(compare_T(0.3, numero)),
+           mean(compare_T(0.5, numero)),mean(compare_T(0.8, numero))),
+         3, byrow=FALSE)
+colnames(m)<- c("tau_p", "tau_t")
+row.names(m)<-c("infl=0.3", "infl=0.5", "infl=0.8")
+knitr::kable(m, caption="means of the two statistics")
+```
+
+
+##Comments about $\tau *$ and code
+\noindent The formula for the variance of $\tau*$ proposed in Pimentel's thesis [1] cannot be applied when the parameters $p_{ij}$ attain the values 0 or 1: the proof relies on the delta method which can be applied only when functions are differentiable. At the extrema of the interval [0,1] no function is differentiable, therefore, whenever any of the parameters $p_{ij}$ attains the values 1 or 0, the standard R $cor.test$ function for Kendall's correlation is used to obtain p-values, when applicable, as the function does not work in case of vectors with zero variance.
+
+\noindent In case of non-zero ties, $\tau_{11}$ is calculated as Kendall's $\tau_b$. If all the non-zero entries of at least one vector are tied, $\tau_{11}$ os set to 0. This choice is in accordance with the treatment of ties in Kendall (1970)[2]. $\tau_{11}$ is set to 0 also in the case of only one pair of non-zero corresponding entries.
+
+
+##Examples
+Mazeinda provides for the user three functions: \textit{associate} for obtaining a matrix of association values, $test \textunderscore associations$ for obtaining the p-values of the output of associate and \textit{combine} which gives non-zero values only if the association is significantly different from 0. It should be noted that independence of two variates implies a zero value of $\tau*$ , but it is not a sufficient and necessary condition and this affects the power of the test, as dependent cases might get rejected. All these functions can be called with two vectors as arguments or with two matrices with vectors to be correlated as columns. If the vectors to be correlated belong to one matrix m, m should be specified as the argument m1 and as the argument m2. 
+
+Note that if the parameters $p_{ij}$ attain the values 0 or 1, since the R function $cor.test$ must be used, the function $combine$ reports the value of Kendall's $\tau_b$ given by the stardart R $cor$ function, if significantly different from 0. The R $cor$ cannot handle vectors with standard deviation 0, therefore such vectors will yield NA. Below are some examples; warnings are suppressed because the $cor.test$ function prints "cannot compute exact p-value with ties". 
+
+\bigskip 
+
+```{r}
+library(mazeinda)
+
+set.seed(234)
+
+x=abs(rBEZI(50, mu = 0.9, sigma = 1, nu = 0.7))
+y=abs(rBEZI(50, mu = 0.9, sigma = 1, nu = 0.2))
+associate(x,y)
+test_associations(x,y)
+combine(x,y)
+
+
+x=matrix(abs(rBEZI(50, mu = 0.9, sigma = 1, nu = 0.6)),5)
+y=matrix(abs(rBEZI(30, mu = 0.9, sigma = 1, nu = 0.3)),5)
+knitr::kable(associate(x,y), digits=3, caption="associate(x,y)")
+knitr::kable(suppressWarnings(test_associations(x,y)),
+             digits=3, caption="test_associations(x,y)")
+knitr::kable(suppressWarnings(combine(x,y)),
+             digits=3,caption="combine(x,y)")
+
+knitr::kable(suppressWarnings(associate(x,x)),
+             digits=3, caption="associate all vectors in the matrix x pairwise")
+```
+
+### Computations in parallel
+<br>If the number of vectors to be associated is extensive, computations can be done in parallel for any of the functions in the package by specifying "parallel=TRUE" and "n_cor=n", where n is the number for cores desired.
+
+<br>The parameters $p_{ij}$'s necessary for calculating $\tau*$ are by default calculated as proportions based on the entries of each pair of vectors to be associated. If the parameters are known, they can be provided to any of the functions in the package by specifying the values as arguments. Only $p_{11}$, $p_{01}$ and $p_{10}$ can be specified. Note that if one of these parameters is specified as an argument, the other two must be specified as well. The parameters $p_{ij}$'s can be estimated as by the population mean, calculated using all the pairs of column vectors from the matrices specified as the arguments d1 and d2. 
+
+\bigskip 
+
+```{r}
+knitr::kable(associate(x,y, estimator="own", p11=0.1,p10=0.1, p01=0.1), digits=3,
+             caption="parameters specified")
+m1=matrix(abs(rBEZI(50, mu = 0.9, sigma = 1, nu = 0.7)),5)
+m2=matrix(abs(rBEZI(30, mu = 0.9, sigma = 1, nu = 0.3)),5)
+knitr::kable(associate(x,y, estimator="mean", d1=m1,d2=m2), digits=3,
+             caption="parameters estimated as population mean")
+```
+
+
+\begin{thebibliography}{1}
+
+\bibitem{Pimentel09}
+ Pimentel, R. S. (2009).
+\newblock Kendall's Tau and Spearman's Rho for Zero-Inflated Data.
+\newblock Western Michigan University Dissertation 721
+\newblock {\tt  http://scholarworks.wmich.edu/dissertations/721}.
+
+\bibitem{Kendall70}
+ Kendall, G.M. (1970).
+\newblock {\em Rank Correlation Methods.}
+\newblock 4th ed. Griffin, London. 
+
+\bibitem{PNW15}
+Pimentel, R.S., Niewiadomska-Bugajb, M., and  Wang, J. (2015)
+\newblock  Association of zero-inflated continuous variable.
+\newblock {\em Statistics $\&$ Probability Letters} 96, 61-67.
+
+\end{thebibliography} 
