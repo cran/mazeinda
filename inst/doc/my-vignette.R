@@ -1,7 +1,7 @@
-## ---- echo=FALSE---------------------------------------------------------
+## ---- echo=FALSE--------------------------------------------------------------
 numero=10000
 
-## ----echo=FALSE----------------------------------------------------------
+## ----echo=FALSE---------------------------------------------------------------
 ### DEFINITIONS OF FORMULAS
 
 prop_11<-function(x,y){
@@ -133,7 +133,7 @@ addendum<-function(x,y){ ##difference between two formulas
 }
 
 
-## ----echo=FALSE,message=FALSE--------------------------------------------
+## ----echo=FALSE,message=FALSE-------------------------------------------------
 # repeat loop in R or repeat function in r
 compare_P<-function(infl, goal){
   v=c()
@@ -189,14 +189,14 @@ hist(compare_P(0.3, numero),main=paste("tau_b-tau_P, infl=", 0.3),pin=c(1,1))
 hist(compare_P(0.5, numero),main=paste("tau_b-tau_P, infl=", 0.5),pin=c(1,1))
 hist(compare_P(0.8, numero),main=paste("tau_b-tau_P, infl=", 0.8),pin=c(1,1))
 
-## ----echo=FALSE,message=FALSE--------------------------------------------
+## ----echo=FALSE,message=FALSE-------------------------------------------------
 par(mfrow = c(1, 3))
 hist(compare_T(0.3, numero),main=paste("tau_b-tau_T, infl=", 0.3),pin=c(1,1))
 hist(compare_T(0.5, numero),main=paste("tau_b-tau_T, infl=", 0.5),pin=c(1,1))
 hist(compare_T(0.8, numero),main=paste("tau_b-tau_T, infl=", 0.8),pin=c(1,1))
 
 
-## ----echo=FALSE----------------------------------------------------------
+## ----echo=FALSE---------------------------------------------------------------
 ### histograms of difference of two formulas
 par(mfrow = c(1, 3))
 
@@ -204,7 +204,7 @@ hist(compare_d(0.3, numero),main=paste("tau_P-tau_T, infl=", 0.3),pin=c(5,5))
 hist(compare_d(0.5, numero),main=paste("tau_P-tau_T, infl=", 0.5),pin=c(5,5))
 hist(compare_d(0.8, numero),main=paste("tau_P-tau_T, infl=", 0.8),pin=c(5,5))
 
-## ---- echo=FALSE, results='asis'-----------------------------------------
+## ---- echo=FALSE, results='asis'----------------------------------------------
 m=matrix(c(mean(compare_P(0.3, numero)),mean(compare_P(0.5, numero)),
            mean(compare_P(0.8, numero)),mean(compare_T(0.3, numero)),
            mean(compare_T(0.5, numero)),mean(compare_T(0.8, numero))),
@@ -213,7 +213,7 @@ colnames(m)<- c("tau_p", "tau_t")
 row.names(m)<-c("infl=0.3", "infl=0.5", "infl=0.8")
 knitr::kable(m, caption="means of the two statistics")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 library(mazeinda)
 
 set.seed(234)
@@ -236,7 +236,7 @@ knitr::kable(suppressWarnings(combine(x,y)),
 knitr::kable(suppressWarnings(associate(x,x)),
              digits=3, caption="associate all vectors in the matrix x pairwise")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 knitr::kable(associate(x,y, estimator="own", p11=0.1,p10=0.1, p01=0.1), digits=3,
              caption="parameters specified")
 m1=matrix(abs(rBEZI(50, mu = 0.9, sigma = 1, nu = 0.7)),5)

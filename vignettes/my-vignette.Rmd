@@ -4,8 +4,8 @@ author: "Alice Dolma Albasi, Martin Wells"
 date: "`r Sys.Date()`"
 output: pdf_document
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Introduction to Mazeinda}
   %\VignetteEncoding{UTF-8}
 ---
 
